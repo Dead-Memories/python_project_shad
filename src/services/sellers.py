@@ -80,4 +80,5 @@ class SellerService:
             return False
 
         await self.session.delete(seller)
+        await self.session.flush()
         return True
