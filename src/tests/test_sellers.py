@@ -8,6 +8,7 @@ from src.models.sellers import Seller
 API_V1_URL_PREFIX = "/api/v1/seller"
 
 
+# Тест на ручку, создающую селлера 
 @pytest.mark.asyncio()
 async def test_create_seller(async_client):
     data = {
@@ -32,7 +33,8 @@ async def test_create_seller(async_client):
         "e_mail": "olya@example.com",
     }
 
-
+# Тест на ручку, возвращающую список всех селлеров
+# дополнительно проверяем, что пароль не возвращается в ответе 
 @pytest.mark.asyncio()
 async def test_get_sellers(db_session, async_client):
     seller_1 = Seller(
@@ -77,7 +79,7 @@ async def test_get_sellers(db_session, async_client):
     for seller in sellers:
         assert "password" not in seller
 
-
+# Тест на ручку, возвращающую селлера по id 
 @pytest.mark.asyncio()
 async def test_get_single_seller(db_session, async_client):
     seller = Seller(
@@ -120,7 +122,7 @@ async def test_get_single_seller(db_session, async_client):
     }
     assert "password" not in response.json()
 
-
+# Тест на ручку, возвращающую селлера по id, если id не существует
 @pytest.mark.asyncio()
 async def test_get_single_seller_with_wrong_id(db_session, async_client):
     seller = Seller(
@@ -136,7 +138,7 @@ async def test_get_single_seller_with_wrong_id(db_session, async_client):
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-
+# Тест на ручку обновления селлера
 @pytest.mark.asyncio()
 async def test_update_seller(db_session, async_client):
     seller = Seller(
@@ -168,7 +170,7 @@ async def test_update_seller(db_session, async_client):
     assert updated_seller.e_mail == "olga@example.com"
     assert updated_seller.password == "123456"
 
-
+# Тест на ручку удаления селлера
 @pytest.mark.asyncio()
 async def test_delete_seller(db_session, async_client):
     seller = Seller(
@@ -187,7 +189,7 @@ async def test_delete_seller(db_session, async_client):
     deleted_seller = await db_session.get(Seller, seller.id)
     assert deleted_seller is None
 
-
+# Проверка, что удаление селлера удаляет его книги 
 @pytest.mark.asyncio()
 async def test_delete_seller_deletes_books(db_session, async_client):
     seller = Seller(
