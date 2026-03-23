@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     db_test_name: str = "fastapi_project_test_db"
     max_connection_count: int = 10
 
+    # for JWT
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 30
+
     @property
     def database_url(self) -> str:
         return (

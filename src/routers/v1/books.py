@@ -7,6 +7,11 @@ from src.configurations.database import get_async_session
 from src.schemas import IncomingBook, PatchBook, ReturnedAllBooks, ReturnedBook
 from src.services import BookService
 
+from src.models.sellers import Seller
+from src.services import get_current_seller
+
+CurrentSeller = Annotated[Seller, Depends(get_current_seller)]
+
 books_router = APIRouter(prefix="/books", tags=["books"])
 
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
@@ -19,7 +24,7 @@ async def get_all_books(session: DBSession):
 
 
 @books_router.post("/", response_model=ReturnedBook, status_code=status.HTTP_201_CREATED)
-async def create_book(book: IncomingBook, session: DBSession):
+async def create_book(book: IncomingBook, session: DBSession, current_seller: CurrentSeller):
     new_book = await BookService(session).add_book(book)
 
     return new_book
@@ -45,8 +50,8 @@ async def delete_book(book_id: int, session: DBSession):
 
 
 @books_router.put("/{book_id}", response_model=ReturnedBook)
-async def update_book(book_id: int, new_book_data: ReturnedBook, session: DBSession):
-
+async def update_book(book_id: int, new_book_data: ReturnedBook, session: DBSession, current_seller: CurrentSeller,):
+    
     updated_book = await BookService(session).update_book(book_id, new_book_data)
 
     if not updated_book:

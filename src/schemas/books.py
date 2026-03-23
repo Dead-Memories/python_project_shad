@@ -22,6 +22,7 @@ class PatchBook(BaseModel):
     author: str | None = None
     year: int | None = None
     pages: int | None = None
+    seller_id: int | None = None
 
 
 # Класс для валидации входящих данных. Не содержит id так как его присваивает БД.
@@ -29,6 +30,7 @@ class IncomingBook(BaseBook):
     pages: int = Field(
         default=100, alias="count_pages"
     )  # Пример использования тонкой настройки полей. Передачи в них метаинформации.
+    seller_id: int
 
     @field_validator("year")  # Валидатор, проверяет что дата не слишком древняя
     @staticmethod
@@ -43,6 +45,7 @@ class IncomingBook(BaseBook):
 class ReturnedBook(BaseBook):  # {"id": 1, "title": "Clean Code", ....}
     id: int
     pages: int
+    seller_id: int | None = None
 
 
 # Класс для возврата массива объектов "Книга"

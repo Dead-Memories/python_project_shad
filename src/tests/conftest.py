@@ -13,9 +13,13 @@ from icecream import ic
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.configurations.settings import settings
-from src.models import books  # noqa
+from src.models import books, sellers  # noqa
 from src.models.base import BaseModel
 from src.models.books import Book  # noqa F401
+
+from fastapi import status
+from src.models.sellers import Seller
+from src.services.auth import get_password_hash
 
 # Переопределяем движок для запуска тестов и подключаем его к тестовой базе.
 # Это решает проблему с сохранностью данных в основной базе приложения.
@@ -88,3 +92,31 @@ async def async_client(test_app):
     transport = httpx.ASGITransport(app=test_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://127.0.0.1:8000") as test_client:
         yield test_client
+
+@pytest.fixture
+async def auth_seller(db_session, async_client):
+    raw_password = "123456"
+
+    seller = Seller(
+        first_name="Olya",
+        last_name="Khramova",
+        e_mail="olya@example.com",
+        password=get_password_hash(raw_password),
+    )
+    db_session.add(seller)
+    await db_session.flush()
+
+    response = await async_client.post(
+        "/api/v1/token/",
+        json={
+            "e_mail": seller.e_mail,
+            "password": raw_password,
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    return seller, headers
