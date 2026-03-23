@@ -84,6 +84,9 @@ uvicorn src.main:app --reload
 2. docker compose up -d db
 3. uvicorn src.main:app --reload
 
+Запуск тестов
+1. pytest -v src/tests
+
 Остановка
 1. Ctrl + C
 2. docker compose down

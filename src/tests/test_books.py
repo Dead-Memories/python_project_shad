@@ -11,15 +11,8 @@ API_V1_URL_PREFIX = "/api/v1/books"
 
 # Тест на ручку создающую книгу
 @pytest.mark.asyncio()
-async def test_create_book(db_session, async_client):
-    seller = Seller(
-        first_name="Olya",
-        last_name="Khramova",
-        e_mail="olya@example.com",
-        password="123456",
-    )
-    db_session.add(seller)
-    await db_session.flush()
+async def test_create_book(async_client, auth_seller):
+    seller, headers = auth_seller
 
     data = {
         "title": "Clean Architecture",
@@ -28,7 +21,11 @@ async def test_create_book(db_session, async_client):
         "year": 2025,
         "seller_id": seller.id,
     }
-    response = await async_client.post(f"{API_V1_URL_PREFIX}/", json=data)
+    response = await async_client.post(
+        f"{API_V1_URL_PREFIX}/",
+        json=data,
+        headers=headers,
+    )
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -47,15 +44,8 @@ async def test_create_book(db_session, async_client):
 
 
 @pytest.mark.asyncio()
-async def test_create_book_with_old_year(db_session, async_client):
-    seller = Seller(
-        first_name="Olya",
-        last_name="Khramova",
-        e_mail="olya@example.com",
-        password="123456",
-    )
-    db_session.add(seller)
-    await db_session.flush()
+async def test_create_book_with_old_year(async_client, auth_seller):
+    seller, headers = auth_seller
 
     data = {
         "title": "Clean Architecture",
@@ -64,9 +54,13 @@ async def test_create_book_with_old_year(db_session, async_client):
         "year": 1986,
         "seller_id": seller.id,
     }
-    response = await async_client.post(f"{API_V1_URL_PREFIX}/", json=data)
+    response = await async_client.post(
+        f"{API_V1_URL_PREFIX}/",
+        json=data,
+        headers=headers,
+    )
 
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 # Тест на ручку получения списка книг
@@ -178,20 +172,16 @@ async def test_get_single_book_with_wrong_id(db_session, async_client):
 
 # Тест на ручку обновления книги
 @pytest.mark.asyncio()
-async def test_update_book(db_session, async_client):
-    seller_1 = Seller(
-        first_name="Olya",
-        last_name="Khramova",
-        e_mail="olya@example.com",
-        password="123456",
-    )
+async def test_update_book(db_session, async_client, auth_seller):
+    seller_1, headers = auth_seller
+
     seller_2 = Seller(
         first_name="Anna",
         last_name="Petrova",
         e_mail="anna@example.com",
         password="qwerty",
     )
-    db_session.add_all([seller_1, seller_2])
+    db_session.add(seller_2)
     await db_session.flush()
 
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
@@ -213,6 +203,7 @@ async def test_update_book(db_session, async_client):
     response = await async_client.put(
         f"{API_V1_URL_PREFIX}/{book.id}",
         json=data,
+        headers=headers,
     )
 
     assert response.status_code == status.HTTP_200_OK

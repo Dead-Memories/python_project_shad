@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.sellers import Seller
+from .auth import get_password_hash
 from src.schemas.sellers import IncomingSeller, PatchSeller, UpdateSeller
 
 __all__ = ["SellerService"]
@@ -17,7 +18,8 @@ class SellerService:
             first_name=seller.first_name,
             last_name=seller.last_name,
             e_mail=seller.e_mail,
-            password=seller.password,
+            # password=seller.password,
+            password=get_password_hash(seller.password),
         )
         self.session.add(new_seller)
         await self.session.flush()

@@ -13,6 +13,9 @@ from src.schemas import (
     UpdateSeller,
 )
 from src.services import SellerService
+from src.models.sellers import Seller
+from src.services import get_current_seller
+CurrentSeller = Annotated[Seller, Depends(get_current_seller)]
 
 sellers_router = APIRouter(prefix="/seller", tags=["seller"])
 
@@ -32,7 +35,7 @@ async def get_all_sellers(session: DBSession):
 
 
 @sellers_router.get("/{seller_id}", response_model=ReturnedSellerWithBooks)
-async def get_single_seller(seller_id: int, session: DBSession):
+async def get_single_seller(seller_id: int, session: DBSession, current_seller: CurrentSeller,):
     seller = await SellerService(session).get_single_seller(seller_id)
     if seller is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)

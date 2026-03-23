@@ -34,7 +34,7 @@ async def test_create_seller(async_client):
     }
 
 # Тест на ручку, возвращающую список всех селлеров
-# дополнительно проверяем, что пароль не возвращается в ответе 
+# дополнительно проверяем, что пароль не возвращается в ответе
 @pytest.mark.asyncio()
 async def test_get_sellers(db_session, async_client):
     seller_1 = Seller(
@@ -81,15 +81,8 @@ async def test_get_sellers(db_session, async_client):
 
 # Тест на ручку, возвращающую селлера по id 
 @pytest.mark.asyncio()
-async def test_get_single_seller(db_session, async_client):
-    seller = Seller(
-        first_name="Olya",
-        last_name="Khramova",
-        e_mail="olya@example.com",
-        password="123456",
-    )
-    db_session.add(seller)
-    await db_session.flush()
+async def test_get_single_seller(db_session, async_client, auth_seller):
+    seller, headers = auth_seller
 
     book = Book(
         title="Clean Architecture",
@@ -101,7 +94,10 @@ async def test_get_single_seller(db_session, async_client):
     db_session.add(book)
     await db_session.flush()
 
-    response = await async_client.get(f"{API_V1_URL_PREFIX}/{seller.id}")
+    response = await async_client.get(
+        f"{API_V1_URL_PREFIX}/{seller.id}",
+        headers=headers,
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -124,19 +120,16 @@ async def test_get_single_seller(db_session, async_client):
 
 # Тест на ручку, возвращающую селлера по id, если id не существует
 @pytest.mark.asyncio()
-async def test_get_single_seller_with_wrong_id(db_session, async_client):
-    seller = Seller(
-        first_name="Olya",
-        last_name="Khramova",
-        e_mail="olya@example.com",
-        password="123456",
-    )
-    db_session.add(seller)
-    await db_session.flush()
+async def test_get_single_seller_with_wrong_id(async_client, auth_seller):
+    _, headers = auth_seller
 
-    response = await async_client.get(f"{API_V1_URL_PREFIX}/999999")
+    response = await async_client.get(
+        f"{API_V1_URL_PREFIX}/999999",
+        headers=headers,
+    )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
 
 # Тест на ручку обновления селлера
 @pytest.mark.asyncio()
@@ -189,7 +182,8 @@ async def test_delete_seller(db_session, async_client):
     deleted_seller = await db_session.get(Seller, seller.id)
     assert deleted_seller is None
 
-# Проверка, что удаление селлера удаляет его книги 
+
+# Проверка, что удаление селлера удаляет его книги
 @pytest.mark.asyncio()
 async def test_delete_seller_deletes_books(db_session, async_client):
     seller = Seller(
